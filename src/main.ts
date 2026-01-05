@@ -9,35 +9,20 @@ async function bootstrap() {
     bodyParser: false,
   });
 
-  // Configure helmet for HTTP security
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"],
-        },
-      },
-    }),
-  );
-
   const config = new DocumentBuilder()
     .setTitle('NestJS Boilerplate')
     .setDescription('API documentation for the NestJS Boilerplate')
     .setVersion('1.0')
     .addTag('api')
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  
+  const document = SwaggerModule.createDocument(app, config);
+  
+  // Setup Scalar API Reference
+  app.use('/docs', apiReference({ spec: { content: document } }));
 
-  app.use(
-    '/reference',
-    apiReference({
-      spec: documentFactory,
-    }),
-  );
-
+  // Configure helmet for HTTP security
+  app.use(helmet());
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
